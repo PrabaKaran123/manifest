@@ -34,8 +34,10 @@ jobs:
         lunch aosp_alioth-userdebug
         mka bacon -j8
 
-    - name: Upload ROM (Artifact)
-      uses: actions/upload-artifact@v2
+     - name: Upload ROM (Artifact)
+      uses: actions/upload-artifact@v4
       with:
         name: infinity-rom
         path: infinity/out/target/product/alioth/*.zip
+        retention-days: 7
+        compression-level: 0
