@@ -29,8 +29,8 @@ jobs:
     - name: Init repo
       working-directory: infinity
       run: |
-        repo init -u https://github.com/ProjectInfinity-X/manifest.git -b thirteen --depth=1
-        repo sync -c --no-tags --no-clone-bundle -j8
+       repo init --depth=1 --no-repo-verify --git-lfs -u https://github.com/ProjectInfinity-X/manifest -b 16 -g default,-mips,-darwin,-notdefault
+        repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all)
 
     - name: Clone device, vendor, and kernel sources
       working-directory: infinity
@@ -43,7 +43,7 @@ jobs:
       working-directory: infinity
       run: |
         source build/envsetup.sh
-        lunch aosp_alioth-userdebug
+        lunch infinity_alioth-userdebug
         mka bacon -j$(nproc)
 
     - name: Upload ROM Artifact
