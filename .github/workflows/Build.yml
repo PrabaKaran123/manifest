@@ -19,13 +19,20 @@ jobs:
     - name: Create working folder
       run: mkdir -p infinity
 
+    - name: Install repo tool
+      working-directory: infinity
+      run: |
+        curl https://storage.googleapis.com/git-repo-downloads/repo > repo
+        chmod a+x repo
+        sudo mv repo /usr/local/bin/
+
     - name: Init repo
       working-directory: infinity
       run: |
         repo init -u https://github.com/ProjectInfinity-X/manifest.git -b thirteen --depth=1
         repo sync -c --no-tags --no-clone-bundle -j8
 
-    - name: Clone device, vendor, kernel sources
+    - name: Clone device, vendor, and kernel sources
       working-directory: infinity
       run: |
         git clone https://github.com/ProjectInfinity-X/device_xiaomi_alioth.git -b thirteen device/xiaomi/alioth
