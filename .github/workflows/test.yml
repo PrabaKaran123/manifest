@@ -1,0 +1,63 @@
+name: Build ProjectInfinity - Mi 11X (Alioth)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    name: Build ROM for Mi 11X
+
+    steps:
+    - name: Install Dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick \
+          lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev \
+          libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev openjdk-11-jdk
+     - name: Free up space
+  run: |
+    sudo rm -rf /usr/share/dotnet
+    sudo rm -rf /opt/ghc
+    sudo rm -rf /opt/hostedtoolcache
+    sudo apt-get clean
+    df -h
+
+
+    - name: Create working folder
+      run: mkdir -p infinity
+
+    - name: Install repo tool
+      working-directory: infinity
+      run: |
+        curl https://storage.googleapis.com/git-repo-downloads/repo > repo
+        chmod a+x repo
+        sudo mv repo /usr/local/bin/
+
+    - name: Init repo
+      working-directory: infinity
+      run: |
+       repo init --depth=1 --no-repo-verify --git-lfs -u https://github.com/ProjectInfinity-X/manifest -b 16 -g default,-mips,-darwin,-notdefault
+        repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all)
+
+    - name: Clone device, vendor, and kernel sources
+      working-directory: infinity
+      run: |
+        git clone https://github.com/ProjectInfinity-X/device_xiaomi_alioth.git -b thirteen device/xiaomi/alioth
+        git clone https://github.com/ProjectInfinity-X/vendor_xiaomi_alioth.git -b thirteen vendor/xiaomi/alioth
+        git clone https://github.com/ProjectInfinity-X/kernel_xiaomi_sm8250.git -b thirteen kernel/xiaomi/sm8250
+
+    - name: Build ROM
+      working-directory: infinity
+      run: |
+        source build/envsetup.sh
+        lunch infinity_alioth-userdebug
+        mka bacon -j$(nproc)
+
+    - name: Upload ROM Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: infinity-rom-alioth
+        path: infinity/out/target/product/alioth/*.zip
+        retention-days: 7
+        compression-level: 0
