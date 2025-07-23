@@ -9,29 +9,32 @@ jobs:
     name: Build ROM for Mi 11X
 
     steps:
-    - name: Set up dependencies
+    - name: Install Dependencies
       run: |
         sudo apt update
         sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick \
           lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev \
           libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev openjdk-11-jdk
 
+    - name: Create working folder
+      run: mkdir -p infinity
+
     - name: Init repo
+      working-directory: infinity
       run: |
-        mkdir infinity && cd infinity
         repo init -u https://github.com/ProjectInfinity-X/manifest.git -b thirteen --depth=1
         repo sync -c --no-tags --no-clone-bundle -j8
 
     - name: Clone device, vendor, kernel sources
+      working-directory: infinity
       run: |
-        cd infinity
         git clone https://github.com/ProjectInfinity-X/device_xiaomi_alioth.git -b thirteen device/xiaomi/alioth
         git clone https://github.com/ProjectInfinity-X/vendor_xiaomi_alioth.git -b thirteen vendor/xiaomi/alioth
         git clone https://github.com/ProjectInfinity-X/kernel_xiaomi_sm8250.git -b thirteen kernel/xiaomi/sm8250
 
     - name: Build ROM
+      working-directory: infinity
       run: |
-        cd infinity
         source build/envsetup.sh
         lunch aosp_alioth-userdebug
         mka bacon -j$(nproc)
